@@ -1,0 +1,160 @@
+-Pocetni kod(omogucavanje unosa):
+
+REC = 'PLANE'
+Pogodi = input("Guess a word: ")
+if Pogodi == REC:
+    print("Correct")
+else:
+    print("Wrong")
+
+-Korisnik moze da unese tacnu rec, ali program nece prepoznati tu rec kao tacnu ako korisnik ne napise tu rec kao sto je zamisljeno u programu. 
+(npr. Tacna rec je 'PLANE', ako korisnik unese 'plane' program nece priznati tu rec kao tacnu)
+Resenje: Pretvaramo korisnicki input u uppercase sa .upper().
+
+Pogodi = input("Guess {guess_num} ").upper()
+
+-Dodavanje petlje(wordle daje korisniku 6 pokusaja da pogodi rec):
+
+REC = 'PLANE'
+
+for br_pog in range (1, 7):
+    Pogodi = input("Guess a word: ").upper()
+    if Pogodi == REC:
+        print("Correct")
+        break
+    else:
+        print("Wrong")
+
+-Proveravanje tacnosti korisnickog unosa:
+
+Odredjujemo tacno postavljena slova uz pomoc funkcije zip(), ova funckija je odlicna za uporedjivanje slova dva stringa.
+
+Primer:
+
+for tacno_slovo, pogodjeno in zip(Rec, Pogodi):
+            if tacno_slovo == pogodjeno:
+                print(tacno_slovo)
+
+Tacno postavljena slova mozemo odrediti na bolji nacin kombinovanjem zip() funkc. i "comprehensions", koje se moze koristiti za kreiranje mocne funkcionalnosti unutar jedne linije koda.
+Ovde cemo koristiti "set comprehensions".
+
+Primer:tacna_slova={slovo for slovo, tacno in zip(Pogodi, REC) if slovo == tacno}
+
+Netacna slova odredjujemo pomocu setova: set(Rec) - set(Pogodi)
+
+Slova koja su pogodjena ali nisu na svom mestu odredjujemo: set(guess) & set(WORD) - tacna_slova
+set(guess) & set(WORD) odredjuje zajednicka slova i oduzimanjem tacnih slova dobijamo samo ona slova koja su tacna a nisu na svom mestu.
+
+-Trenutni kod:
+
+REC = 'PLANE'
+
+for br_pog in range (1, 7):
+    Pogodi = input("Guess {br_pog}: ").upper()
+    if Pogodi == REC:
+        print("Correct")
+        break
+    tacna_slova = {slovo for slovo, correct in zip(Pogodi, REC) if slovo == correct}
+    slova_van_mesta = set(Pogodi) & set(REC) - tacna_slova
+    pogresna = set(Pogodi) - set(REC)
+    
+    print("Correct letters:", ", ".join(sorted(tacna_slova)))
+    print("Misplaced letters:", ", ".join(sorted(slova_van_mesta)))
+    print("Wrong letters:", ", ".join(sorted(pogresna)))
+
+-Lista reci:
+Pravimo listu reci iz koje ce program nasumicno birati resenja.
+Ovde koristimo biblioteku "pathlib". Koristimo funkciju .read_text(): "opens the path in text mode and returns the contents as a string".
+.read_text() sadrzaj .txt file-a vraca kao jedan string (npr. bench\nbdult\namong\navoid\nafter\nanger\naward\nbirth\nagain\nangle\n)
+
+Koristimo strip() kako bi smo uklonili zadnji \n (newline) i split(\n) kako bi smo razdvojili reci i napravili listu.
+
+-Nasumicni odabir:
+Koristimo biblioteku "random" i funkciju .choice().
+
+-Trenutni kod:
+
+import pathlib
+import random
+
+LISTARECI = pathlib.Path("lista_reci.txt")
+reci = [
+    rec.upper()
+    for rec in LISTARECI.read_text(encoding="utf-8").strip().split("\n")
+]
+rec = random.choice(reci)
+for br_pog in range (1, 7):
+    Pogodi = input("\nGuess a word:").upper()
+    if Pogodi == rec:
+        print("Correct")
+        break
+    tacna_slova = {slovo for slovo, tacno in zip(Pogodi, rec) if slovo == tacno}
+    slova_van_mesta = set(Pogodi) & set(rec) - tacna_slova
+    pogresna = set(Pogodi) - set(rec)
+    
+    print("Correct letters:", ", ".join((tacna_slova)))
+    print("Misplaced letters:", ", ".join((slova_van_mesta)))
+    print("Wrong letters:", ", ".join((pogresna)))
+else:
+    print("\nThe word was", rec)
+
+-Filtriranje reci iz liste:
+Koristimo funkciju if, proveravamo duzinu reci len(rec)==5 i trazimo reci koja koriste abecedu (A-Z).
+
+Kod:
+import pathlib
+import random
+from string import ascii_letters
+
+
+LISTARECI = pathlib.Path("reciii.txt") #ucitava listu
+reci = [
+    rec.upper() #forsira uppercase
+    for rec in LISTARECI.read_text(encoding="utf-8").split("\n")
+    if len(rec) == 5 and all(slovo in ascii_letters for slovo in rec) #filtriranje
+]
+...
+Sklonili smo funkciju strip() zato sto se filtriranjem sklanja "\n". 
+
+-Organizovanje koda uz pomoc funkcija:
+
+Pravimo dve funkcije: random_rec() i proveri()
+Kod:
+import pathlib
+import random
+from string import ascii_letters
+
+def random_rec():
+    LISTARECI = pathlib.Path("reciii.txt")
+    reci = [
+        rec.upper() #forsira uppercase
+        for rec in LISTARECI.read_text(encoding="utf-8").split("\n")
+        if len(rec) == 5 and all(slovo in ascii_letters for slovo in rec) #filtriranje
+    ]
+    return random.choice(reci)
+
+def proveri(Pogodi, rec):
+    tacna_slova = {slovo for slovo, tacno in zip(Pogodi, rec) if slovo == tacno}
+    slova_van_mesta = set(Pogodi) & set(rec) - tacna_slova
+    pogresna = set(Pogodi) - set(rec)
+    
+    print("Correct letters:", ", ".join((tacna_slova)))
+    print("Misplaced letters:", ", ".join((slova_van_mesta)))
+    print("Wrong letters:", ", ".join((pogresna)))
+
+def main():
+    rec = random_rec()
+    br = 7
+    for br_pog in range (1, 7):
+        print("\nYou have ",br-1, "chances to guess the correct word.")
+        Pogodi = input("\nGuess a word:").upper()
+
+        
+        proveri(Pogodi, rec)
+        if Pogodi==rec:
+            break
+    else:
+        print("\nThe word was", rec)
+
+if __name__ == "__main__":
+    main()
